@@ -25,7 +25,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="5941ac24-9a94-4c63-993c-c0ac98e11ca0" name="Default Changelist" comment="" />
+    <list default="true" id="5941ac24-9a94-4c63-993c-c0ac98e11ca0" name="Default Changelist" comment="initial commit" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -102,9 +102,9 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue="Go Build.UDPSender Server" />
       <item itemvalue="Go Build.build windows" />
       <item itemvalue="Go Build.go build dbtest.go" />
-      <item itemvalue="Go Build.UDPSender Server" />
     </list>
     <recent_temporary>
       <list>

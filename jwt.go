@@ -59,7 +59,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("%s Login success: %s",time.Now().Format(time.UnixDate),creds.Username)
+	fmt.Printf("%s Login success: %s\n", time.Now().Format(time.UnixDate), creds.Username)
 	json.NewEncoder(w).Encode(&ApiReturn{
 		Retcode: 0,
 		Message: "OK",
@@ -87,7 +87,7 @@ func VerifyHeader(header http.Header) bool {
 	tkn, err := jwt.ParseWithClaims(tknStr[1], claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
-	fmt.Printf("%d",claims.ExpiresAt)
+	fmt.Printf("%d", claims.ExpiresAt)
 	if err != nil || !tkn.Valid {
 		return false
 	}
@@ -108,7 +108,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 24 * time.Hour {
+	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 24*time.Hour {
 		json.NewEncoder(w).Encode(&ApiReturn{
 			Retcode: -1,
 			Message: "Token not expires in one day",
