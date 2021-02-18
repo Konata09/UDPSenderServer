@@ -16,5 +16,5 @@ func getMD5(password string) string {
 func checkMD5(passIn string, passMD5 string) bool {
 	data := []byte(passIn + salt)
 	encodedPass := md5.Sum(data)
-	return hex.EncodeToString(encodedPass[:])==passMD5
+	return hex.EncodeToString(encodedPass[:]) == passMD5
 }

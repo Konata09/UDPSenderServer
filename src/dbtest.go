@@ -72,7 +72,7 @@ func a() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("uid: %d pass: %s isadmin %t",uid,password,isadmin)
+	fmt.Printf("uid: %d pass: %s isadmin %t", uid, password, isadmin)
 
 	//_, err = db.Exec("delete from foo")
 	//if err != nil {
@@ -85,4 +85,3 @@ func a() {
 	//}
 
 }
-
