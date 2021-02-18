@@ -26,7 +26,20 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5941ac24-9a94-4c63-993c-c0ac98e11ca0" name="Default Changelist" comment="initial commit">
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources/9dad6218-b26d-4725-b65f-bc4334688e36.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/github.com/dgrijalva/jwt-go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/github.com/mattn/go-sqlite3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/UDPSenderServer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/UDPSenderServer.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dbo.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/dbtest.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/dbtest.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/handlers.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/handlers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/jwt.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/login.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/udpDemo.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/udpDemo.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/util.go" beforeDir="false" afterPath="$PROJECT_DIR$/src/util.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,11 +79,16 @@
     <property name="configurable.Project.GOPATH.is.expanded" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.tried.to.enable.integration.vgo.integrator" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/src" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.goide.configuration.GoProjectSettingsConfigurable" />
   </component>
-  <component name="RunManager" selected="Go Build.build windows">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="F:\Code\UDPSenderServer\src" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Go Build.run windows">
     <configuration name="UDPSender Server" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true">
       <module name="UDPSenderServer" />
       <working_directory value="$PROJECT_DIR$" />
@@ -86,32 +104,22 @@
       <option name="run" value="false" />
       <method v="2" />
     </configuration>
-    <configuration name="build windows" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <configuration name="run windows" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="UDPSenderServer" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="DIRECTORY" />
       <filePath value="$PROJECT_DIR$/main.go" />
-      <directory value="$PROJECT_DIR$" />
-      <output_directory value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go build dbtest.go" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
-      <module name="UDPSenderServer" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="FILE" />
-      <filePath value="$PROJECT_DIR$/dbtest.go" />
-      <directory value="$PROJECT_DIR$" />
+      <directory value="$PROJECT_DIR$/src" />
+      <output_directory value="$PROJECT_DIR$/bin" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Build.build windows" />
+      <item itemvalue="Go Build.run windows" />
       <item itemvalue="Go Build.UDPSender Server" />
-      <item itemvalue="Go Build.go build dbtest.go" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Go Build.UDPSender Server" />
-        <item itemvalue="Go Build.go build dbtest.go" />
       </list>
     </recent_temporary>
   </component>

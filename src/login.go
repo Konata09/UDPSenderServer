@@ -26,13 +26,18 @@ type ResponseToken struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
-	w.Header().Set("Content-Type", "application/json")
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	err := json.NewDecoder(r.Body).Decode(&creds)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	role := CheckUserByPass(creds.Username, creds.Password)
 	if role == -1 {
 		json.NewEncoder(w).Encode(&ApiReturn{
@@ -93,6 +98,7 @@ func VerifyHeader(header http.Header) bool {
 	}
 	return true
 }
+
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	re := regexp.MustCompile(`Bearer\s(.*)$`)
 	headerAuth := r.Header.Get("Authorization")

@@ -16,6 +16,7 @@ func initDBConn() {
 		fmt.Printf("Error open database.\n")
 	}
 }
+
 // 0:admin 1:user -1:error
 func CheckUserByPass(username string, password string) int {
 	stmt, err := db.Prepare("select uid, password, isadmin from user,role where username = ? and user.roleid = role.roleid")
@@ -32,7 +33,7 @@ func CheckUserByPass(username string, password string) int {
 		return -1
 	}
 
-	if !checkMD5(password,PasswordMD5) {
+	if !checkMD5(password, PasswordMD5) {
 		return -1
 	} else {
 		if isadmin {
