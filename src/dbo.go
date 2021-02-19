@@ -39,7 +39,22 @@ func getRoleByUid(uid int, role *Role) *Role {
 	return role
 }
 
-func SetPasswdByUid(uid int, newPassword string) bool {
+func GetPasswordByUid(uid int) (res string, err error) {
+	stmt, err := db.Prepare("select password from user where uid = ?")
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+	defer stmt.Close()
+	var passMD5 string
+	err = stmt.QueryRow(uid).Scan(&passMD5)
+	if err != nil {
+		log.Fatal(err)
+		return "", err
+	}
+	return passMD5, nil
+}
+func SetPasswordByUid(uid int, newPassword string) bool {
 	stmt, err := db.Prepare("update user set password = ? where uid = ?")
 	if err != nil {
 		log.Fatal(err)

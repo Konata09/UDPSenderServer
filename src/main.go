@@ -10,12 +10,6 @@ import (
 var jwtKey = []byte("sd*ust#konata&2O20")
 var db *sql.DB
 
-type ApiReturn struct {
-	Retcode int         `json:"retcode"`
-	Message string      `json:"message"`
-	Data    interface{} `json:"data"`
-}
-
 func initDBConn() {
 	var err error
 	db, err = sql.Open("sqlite3", "db.db?cache=shared&mode=wrc")
@@ -32,7 +26,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/api/v1/login", http.HandlerFunc(Login))
 	mux.Handle("/api/v1/refresh", http.HandlerFunc(RefreshToken))
-	mux.Handle("/api/v1/user/changepassword", VerifyHeader(http.HandlerFunc(Welcome)))
+	mux.Handle("/api/v1/user/changepassword", VerifyHeader(http.HandlerFunc(UserChangePassword)))
 	mux.Handle("/api/v1/welcome", VerifyHeader(http.HandlerFunc(Welcome)))
 
 	fmt.Println("UDPServer listen on 9999")

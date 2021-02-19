@@ -39,7 +39,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	uid := getUidByUsernameAndPassword(creds.Username, creds.Password)
 	if uid == -1 {
 		json.NewEncoder(w).Encode(&ApiReturn{
@@ -103,14 +103,29 @@ func VerifyHeader(next http.Handler) http.Handler {
 		tkn, err := jwt.ParseWithClaims(tknStr[1], claims, func(token *jwt.Token) (interface{}, error) {
 			return jwtKey, nil
 		})
-		fmt.Printf("%d", claims.ExpiresAt)
 		if err != nil || !tkn.Valid {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json;charset=utf-8")
 		next.ServeHTTP(w, r)
 	})
+}
+
+func getUserInfoFromJWT(r *http.Request) *User {
+	re := regexp.MustCompile(`Bearer\s(.*)$`)
+	headerAuth := r.Header.Get("Authorization")
+	tknStr := re.FindStringSubmatch(headerAuth)
+	claims := &Claims{}
+
+	jwt.ParseWithClaims(tknStr[1], claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	return &User{
+		uid:      claims.Uid,
+		username: claims.Username,
+		isadmin:  claims.Isadmin,
+	}
 }
 
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
