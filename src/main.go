@@ -18,11 +18,18 @@ type ApiReturn struct {
 
 func main() {
 	initDBConn()
-
-	http.HandleFunc("/api/v1/login", Login)
-	http.HandleFunc("/api/v1/welcome", Welcome)
-	http.HandleFunc("/api/v1/refresh", RefreshToken)
+	mux := http.NewServeMux()
+	mux.Handle("/api/v1/login", http.HandlerFunc(Login))
+	mux.Handle("/api/v1/refresh", http.HandlerFunc(RefreshToken))
+	mux.Handle("/api/v1/welcome", VerifyHeader(http.HandlerFunc(Welcome)))
 
 	fmt.Println("UDPServer listen on 9999")
-	log.Panic(http.ListenAndServe(":9999", nil))
+	log.Panic(http.ListenAndServe(":9999", mux))
+}
+
+func exampleMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Our middleware logic goes here...
+		next.ServeHTTP(w, r)
+	})
 }

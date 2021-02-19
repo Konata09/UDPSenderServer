@@ -33,7 +33,7 @@ func CheckUserByPass(username string, password string) int {
 		return -1
 	}
 
-	if !checkMD5(password, PasswordMD5) {
+	if !checkPassword(password, PasswordMD5) {
 		return -1
 	} else {
 		if isadmin {

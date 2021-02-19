@@ -51,10 +51,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	claims := &Claims{
 		Username: creds.Username,
+		Role:     role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
-		Role: role,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -74,35 +74,41 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func VerifyHeader(header http.Header) bool {
-	re := regexp.MustCompile(`Bearer\s(.*)$`)
+func VerifyHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		re := regexp.MustCompile(`Bearer\s(.*)$`)
 
-	headerAuth := header.Get("Authorization")
-	if len(headerAuth) == 0 {
-		return false
-	}
-	tknStr := re.FindStringSubmatch(headerAuth)
+		headerAuth := r.Header.Get("Authorization")
+		if len(headerAuth) == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		tknStr := re.FindStringSubmatch(headerAuth)
 
-	claims := &Claims{}
+		claims := &Claims{}
 
-	// Parse the JWT string and store the result in `claims`.
-	// Note that we are passing the key in this method as well. This method will return an error
-	// if the token is invalid (if it has expired according to the expiry time we set on sign in),
-	// or if the signature does not match
-	tkn, err := jwt.ParseWithClaims(tknStr[1], claims, func(token *jwt.Token) (interface{}, error) {
-		return jwtKey, nil
+		// Parse the JWT string and store the result in `claims`.
+		// Note that we are passing the key in this method as well. This method will return an error
+		// if the token is invalid (if it has expired according to the expiry time we set on sign in),
+		// or if the signature does not match
+		tkn, err := jwt.ParseWithClaims(tknStr[1], claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+		fmt.Printf("%d", claims.ExpiresAt)
+		if err != nil || !tkn.Valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		next.ServeHTTP(w, r)
 	})
-	fmt.Printf("%d", claims.ExpiresAt)
-	if err != nil || !tkn.Valid {
-		return false
-	}
-	return true
 }
 
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	re := regexp.MustCompile(`Bearer\s(.*)$`)
 	headerAuth := r.Header.Get("Authorization")
 	if len(headerAuth) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	tknStr := re.FindStringSubmatch(headerAuth)
@@ -114,6 +120,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 24*time.Hour {
 		json.NewEncoder(w).Encode(&ApiReturn{
 			Retcode: -1,
