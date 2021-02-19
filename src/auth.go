@@ -15,8 +15,10 @@ type Credentials struct {
 }
 
 type Claims struct {
+	Uid      int    `json:"uid"`
 	Username string `json:"username"`
-	Role     int    `json:"role"` // 0:admin 1:user
+	Rolename string `json:"rolename"`
+	Isadmin  bool   `json:"isadmin"`
 	jwt.StandardClaims
 }
 
@@ -38,22 +40,26 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	role := CheckUserByPass(creds.Username, creds.Password)
-	if role == -1 {
+	uid := getUidByUsernameAndPassword(creds.Username, creds.Password)
+	if uid == -1 {
 		json.NewEncoder(w).Encode(&ApiReturn{
 			Retcode: -1,
 			Message: "Wrong username or password",
 		})
 		return
 	}
-
+	var role Role
+	role = *getRoleByUid(uid, &role)
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 
 	claims := &Claims{
+		Uid:      uid,
 		Username: creds.Username,
-		Role:     role,
+		Rolename: role.rolename,
+		Isadmin:  role.isadmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
 		},
 	}
 
@@ -64,7 +70,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	fmt.Printf("%s Login success: %s\n", time.Now().Format(time.UnixDate), creds.Username)
+	fmt.Printf("%s Login success: %d %s\n", time.Now().Format(time.UnixDate), uid, creds.Username)
 	json.NewEncoder(w).Encode(&ApiReturn{
 		Retcode: 0,
 		Message: "OK",
@@ -84,7 +90,10 @@ func VerifyHeader(next http.Handler) http.Handler {
 			return
 		}
 		tknStr := re.FindStringSubmatch(headerAuth)
-
+		if len(tknStr) == 0 {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 		claims := &Claims{}
 
 		// Parse the JWT string and store the result in `claims`.
@@ -112,6 +121,10 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	tknStr := re.FindStringSubmatch(headerAuth)
+	if len(tknStr) == 0 {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 	claims := &Claims{}
 	tkn, err := jwt.ParseWithClaims(tknStr[1], claims, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil

@@ -1,46 +1,55 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 )
 
-func initDBConn() {
-	var err error
-	db, err = sql.Open("sqlite3", "db.db?cache=shared&mode=wrc")
-	if err != nil {
-		log.Fatal(err)
-	}
-	if db == nil {
-		fmt.Printf("Error open database.\n")
-	}
-}
-
-// 0:admin 1:user -1:error
-func CheckUserByPass(username string, password string) int {
-	stmt, err := db.Prepare("select uid, password, isadmin from user,role where username = ? and user.roleid = role.roleid")
+func getUidByUsernameAndPassword(username string, password string) int {
+	passwordMD5 := getPasswordMD5(password)
+	stmt, err := db.Prepare("select uid from user where username = ? and password = ?")
 	if err != nil {
 		log.Fatal(err)
 		return -1
 	}
 	defer stmt.Close()
 	var uid int
-	var PasswordMD5 string
-	var isadmin bool
-	err = stmt.QueryRow(username).Scan(&uid, &PasswordMD5, &isadmin)
+	err = stmt.QueryRow(username, passwordMD5).Scan(&uid)
 	if err != nil {
+		log.Fatal(err)
 		return -1
 	}
+	return uid
+}
 
-	if !checkPassword(password, PasswordMD5) {
-		return -1
-	} else {
-		if isadmin {
-			return 0
-		} else {
-			return 1
-		}
+func getRoleByUid(uid int, role *Role) *Role {
+	stmt, err := db.Prepare("select rolename, isadmin from user,role where uid = ? and user.roleid = role.roleid")
+	if err != nil {
+		log.Fatal(err)
+		return nil
 	}
+	defer stmt.Close()
+	var isadmin bool
+	var rolename string
+	err = stmt.QueryRow(uid).Scan(&rolename, &isadmin)
+	if err != nil {
+		return nil
+	}
+	role.rolename = rolename
+	role.isadmin = isadmin
+	return role
+}
 
+func SetPasswdByUid(uid int, newPassword string) bool {
+	stmt, err := db.Prepare("update user set password = ? where uid = ?")
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(newPassword, uid)
+	if err != nil {
+		log.Fatal(err)
+		return false
+	}
+	return true
 }
