@@ -50,14 +50,29 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	ok := SetPasswordByUid(user.uid, body.NewPass)
+	ok := SetPasswordByUid(user.uid, getPasswordMD5(body.NewPass))
 	if ok {
 		returnOk(w)
 	} else {
-		returnErr(w)
+		returnErrMsg(w, "修改失败")
 	}
 }
 
 func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
-
+	if r.Method != "POST" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var body AdminChangePasswordBody
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		returnErr(w)
+		return
+	}
+	ok := SetPasswordByUid(body.Uid, getPasswordMD5(body.NewPass))
+	if ok {
+		returnOk(w)
+	} else {
+		returnErrMsg(w, "修改失败")
+	}
 }

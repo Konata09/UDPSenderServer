@@ -28,6 +28,8 @@ type ResponseToken struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
+	role := new(Role)
+
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -48,10 +50,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	var role Role
-	role = *getRoleByUid(uid, &role)
+	role = getRoleByUid(uid, role)
+	if role == nil {
+		json.NewEncoder(w).Encode(&ApiReturn{
+			Retcode: -1,
+			Message: "Wrong username or password",
+		})
+		return
+	}
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
-
 	claims := &Claims{
 		Uid:      uid,
 		Username: creds.Username,
@@ -109,6 +116,18 @@ func VerifyHeader(next http.Handler) http.Handler {
 		}
 		w.Header().Set("Content-Type", "application/json;charset=utf-8")
 		next.ServeHTTP(w, r)
+	})
+}
+
+func VerifyAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := getUserInfoFromJWT(r)
+		if user.isadmin == true {
+			w.Header().Set("Content-Type", "application/json;charset=utf-8")
+			next.ServeHTTP(w, r)
+		} else {
+			returnErrMsg(w, "权限不足")
+		}
 	})
 }
 

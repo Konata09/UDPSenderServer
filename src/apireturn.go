@@ -23,3 +23,10 @@ func returnErr(w http.ResponseWriter) {
 		Message: "请求出错",
 	})
 }
+
+func returnErrMsg(w http.ResponseWriter, msg string) {
+	json.NewEncoder(w).Encode(&ApiReturn{
+		Retcode: -1,
+		Message: msg,
+	})
+}

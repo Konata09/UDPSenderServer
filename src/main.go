@@ -27,8 +27,9 @@ func main() {
 	mux.Handle("/api/v1/login", http.HandlerFunc(Login))
 	mux.Handle("/api/v1/refresh", http.HandlerFunc(RefreshToken))
 	mux.Handle("/api/v1/user/changepassword", VerifyHeader(http.HandlerFunc(UserChangePassword)))
+	mux.Handle("/api/v1/admin/changepassword", VerifyHeader(VerifyAdmin(http.HandlerFunc(AdminChangePassword))))
 	mux.Handle("/api/v1/welcome", VerifyHeader(http.HandlerFunc(Welcome)))
-
+	//fmt.Println(getPasswordMD5("admin"))
 	fmt.Println("UDPServer listen on 9999")
 	log.Panic(http.ListenAndServe(":9999", mux))
 }
