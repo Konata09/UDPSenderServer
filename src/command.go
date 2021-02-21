@@ -40,7 +40,7 @@ func SetCommand(w http.ResponseWriter, r *http.Request) {
 		var msg string
 		for _, cmd := range body.Commands {
 			if strings.TrimSpace(cmd.CommandName) == "" || strings.TrimSpace(cmd.CommandValue) == "" {
-				msg = msg + "Incomplete item found "
+				msg = msg + "命令名称和值均不能为空 "
 			} else {
 				commands = append(commands, cmd)
 			}
@@ -60,6 +60,10 @@ func SetCommand(w http.ResponseWriter, r *http.Request) {
 		err := json.NewDecoder(r.Body).Decode(&body)
 		if err != nil {
 			ApiErr(w)
+			return
+		}
+		if strings.TrimSpace(body.CommandName) == "" || strings.TrimSpace(body.CommandValue) == "" {
+			ApiErrMsg(w, "命令名称和值均不能为空")
 			return
 		}
 		if getCommandById(body.CommandId) == nil {

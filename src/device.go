@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -18,6 +19,31 @@ type Device struct {
 type AllDevices struct {
 	Count   int      `json:"count"`
 	Devices []Device `json:"devices"`
+}
+
+func checkDeviceValid(name string, ip string, mac string, udp bool, wol bool) (bool, string) {
+	reIp := regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$`)
+	reMac := regexp.MustCompile(`^([0-9A-Fa-f]{2}([:-]?|$)){6}$`)
+
+	if !udp && !wol {
+		return false, "WOL与UDP中必须选择一项"
+	}
+	if strings.TrimSpace(name) == "" || (strings.TrimSpace(ip) == "" && strings.TrimSpace(mac) == "") {
+		return false, "设备名称为空或者设备ip和mac地址均为空"
+	}
+	if ip != "" && !reIp.MatchString(ip) {
+		return false, "ip地址格式不正确"
+	}
+	if mac != "" && !reMac.MatchString(mac) {
+		return false, "mac地址格式不正确"
+	}
+	if wol && mac == "" {
+		return false, "WOL需要mac地址"
+	}
+	if udp && ip == "" {
+		return false, "UDP需要ip地址"
+	}
+	return true, ""
 }
 
 func SetDevice(w http.ResponseWriter, r *http.Request) {
@@ -41,11 +67,13 @@ func SetDevice(w http.ResponseWriter, r *http.Request) {
 		}
 		var devices []Device
 		var msg string
+
 		for _, dev := range body.Devices {
-			if strings.TrimSpace(dev.DeviceName) == "" || (strings.TrimSpace(dev.DeviceIp) == "" && strings.TrimSpace(dev.DeviceMac) == "") {
-				msg = msg + "Incomplete item found "
-			} else {
+			valid, m := checkDeviceValid(dev.DeviceName, dev.DeviceIp, dev.DeviceMac, dev.DeviceUdp, dev.DeviceWol)
+			if valid {
 				devices = append(devices, dev)
+			} else {
+				msg = msg + m + " "
 			}
 		}
 		if len(devices) == 0 {
@@ -65,12 +93,13 @@ func SetDevice(w http.ResponseWriter, r *http.Request) {
 			ApiErr(w)
 			return
 		}
-		if strings.TrimSpace(body.DeviceName) == "" || (strings.TrimSpace(body.DeviceIp) == "" && strings.TrimSpace(body.DeviceMac) == "") {
-			ApiErrMsg(w, "Incomplete item found")
-			return
-		}
 		if getDeviceById(body.DeviceId) == nil {
 			ApiErrMsg(w, "设备不存在")
+			return
+		}
+		valid, m := checkDeviceValid(body.DeviceName, body.DeviceIp, body.DeviceMac, body.DeviceUdp, body.DeviceWol)
+		if !valid {
+			ApiErrMsg(w, m)
 			return
 		}
 		ok := setDevice(body.DeviceId, body.DeviceName, body.DeviceIp, body.DeviceMac, body.DeviceUdp, body.DeviceWol)

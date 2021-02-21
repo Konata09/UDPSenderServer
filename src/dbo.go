@@ -185,7 +185,7 @@ func addCommand(commands []Command) bool {
 	}
 	defer stmt.Close()
 	for _, cmd := range commands {
-		_, err = stmt.Exec(cmd.CommandName, cmd.CommandValue, cmd.CommandPort)
+		_, err = stmt.Exec(cmd.CommandName, trimCommandToStor(cmd.CommandValue), cmd.CommandPort)
 		if err != nil {
 			return false
 		}
@@ -211,7 +211,7 @@ func setCommand(commandId int, commandName string, commandValue string, commandP
 	if err != nil {
 		return false
 	}
-	_, err = stmt.Exec(commandName, commandValue, commandPort, commandId)
+	_, err = stmt.Exec(commandName, trimCommandToStor(commandValue), commandPort, commandId)
 	if err != nil {
 		return false
 	}
@@ -232,6 +232,7 @@ func getDevices() []Device {
 	for rows.Next() {
 		var device Device
 		rows.Scan(&device.DeviceId, &device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol)
+		device.DeviceMac = trimMACtoShow(device.DeviceMac)
 		devices = append(devices, device)
 	}
 	return devices
@@ -248,6 +249,7 @@ func getDeviceById(deviceId int) *Device {
 	if err != nil {
 		return nil
 	}
+	device.DeviceMac = trimMACtoShow(device.DeviceMac)
 	return &device
 }
 
@@ -261,7 +263,7 @@ func addDevice(devices []Device) bool {
 		if reflect.ValueOf(dev).IsZero() {
 			continue
 		}
-		_, err = stmt.Exec(dev.DeviceName, dev.DeviceIp, dev.DeviceMac, &dev.DeviceUdp, &dev.DeviceWol)
+		_, err = stmt.Exec(dev.DeviceName, dev.DeviceIp, trimMACtoStor(dev.DeviceMac), &dev.DeviceUdp, &dev.DeviceWol)
 		if err != nil {
 			return false
 		}
@@ -287,7 +289,7 @@ func setDevice(deviceId int, deviceName string, deviceIp string, deviceMac strin
 	if err != nil {
 		return false
 	}
-	_, err = stmt.Exec(deviceName, deviceIp, deviceMac, deviceUdp, deviceWol, deviceId)
+	_, err = stmt.Exec(deviceName, deviceIp, trimMACtoStor(deviceMac), deviceUdp, deviceWol, deviceId)
 	if err != nil {
 		return false
 	}
