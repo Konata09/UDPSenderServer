@@ -43,13 +43,13 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	uid := getUidByUsernameAndPassword(creds.Username, creds.Password)
-	if uid == -1 {
-		returnErrMsg(w, "Wrong username or password")
+	if uid < 0 {
+		ApiErrMsg(w, "Wrong username or password")
 		return
 	}
 	role = getRoleByUid(uid, role)
 	if role == nil {
-		returnErrMsg(w, "Wrong username or password")
+		ApiErrMsg(w, "Wrong username or password")
 		return
 	}
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
@@ -120,7 +120,7 @@ func VerifyAdmin(next http.Handler) http.Handler {
 			w.Header().Set("Content-Type", "application/json;charset=utf-8")
 			next.ServeHTTP(w, r)
 		} else {
-			returnErrMsg(w, "权限不足")
+			ApiErrMsg(w, "权限不足")
 		}
 	})
 }
@@ -164,7 +164,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 24*time.Hour {
-		returnErrMsg(w, "Token not expires in one day")
+		ApiErrMsg(w, "Token not expires in one day")
 		return
 	}
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)

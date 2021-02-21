@@ -15,7 +15,7 @@ func getUidByUsernameAndPassword(username string, password string) int {
 	return uid
 }
 
-func getUidByUsername(username int) int {
+func getUidByUsername(username string) int {
 	stmt, err := db.Prepare("select uid from user where username = ?")
 	if err != nil {
 		return -1
@@ -44,6 +44,19 @@ func getRoleByUid(uid int, role *Role) *Role {
 	role.Rolename = rolename
 	role.Isadmin = isadmin
 	return role
+}
+func getRoleidByRolename(rolename string) int {
+	stmt, err := db.Prepare("select roleid from role where rolename = ?")
+	if err != nil {
+		return -1
+	}
+	var roleid int
+	defer stmt.Close()
+	err = stmt.QueryRow(rolename).Scan(&roleid)
+	if err != nil {
+		return -1
+	}
+	return roleid
 }
 
 func GetPasswordByUid(uid int) (res string, err error) {

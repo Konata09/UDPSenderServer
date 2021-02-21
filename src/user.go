@@ -17,6 +17,11 @@ type Role struct {
 	Isadmin  bool
 }
 
+type AllUsers struct {
+	Count int    `json:"count"`
+	Users []User `json:"users"`
+}
+
 type UserChangePasswordBody struct {
 	OldPass string `json:"oldpass"`
 	NewPass string `json:"newpass"`
@@ -27,9 +32,10 @@ type AdminChangePasswordBody struct {
 	NewPass string `json:"newpass"`
 }
 
-type AllUsers struct {
-	Count int    `json:"count"`
-	Users []User `json:"users"`
+type PutUserBody struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Rolename string `json:"rolename"`
 }
 
 func UserChangePassword(w http.ResponseWriter, r *http.Request) {
@@ -41,12 +47,12 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 	var body UserChangePasswordBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		returnErr(w)
+		ApiErr(w)
 		return
 	}
 	oldPass, err := GetPasswordByUid(user.Uid)
 	if err != nil {
-		returnErr(w)
+		ApiErr(w)
 		return
 	}
 	if oldPass != getPasswordMD5(body.OldPass) {
@@ -58,9 +64,9 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	ok := SetPasswordByUid(user.Uid, getPasswordMD5(body.NewPass))
 	if ok {
-		returnOk(w)
+		ApiOk(w)
 	} else {
-		returnErrMsg(w, "修改失败")
+		ApiErrMsg(w, "修改失败")
 	}
 }
 
@@ -72,14 +78,14 @@ func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
 	var body AdminChangePasswordBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
-		returnErr(w)
+		ApiErr(w)
 		return
 	}
 	ok := SetPasswordByUid(body.Uid, getPasswordMD5(body.NewPass))
 	if ok {
-		returnOk(w)
+		ApiOk(w)
 	} else {
-		returnErrMsg(w, "修改失败")
+		ApiErrMsg(w, "修改失败")
 	}
 }
 
@@ -96,7 +102,27 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 	case "PUT":
-
+		var body PutUserBody
+		err := json.NewDecoder(r.Body).Decode(&body)
+		if err != nil {
+			ApiErr(w)
+			return
+		}
+		roleid := getRoleidByRolename(body.Rolename)
+		if roleid < 0 {
+			ApiErrMsg(w, "用户组不存在")
+			return
+		}
+		if getUidByUsername(body.Username) > 0 {
+			ApiErrMsg(w, "用户名已占用")
+			return
+		}
+		ok := AddUser(body.Username, getPasswordMD5(body.Password), roleid)
+		if ok {
+			ApiOk(w)
+		} else {
+			ApiErr(w)
+		}
 	case "DELETE":
 
 	default:
