@@ -37,6 +37,9 @@ type PutUserBody struct {
 	Password string `json:"password"`
 	Rolename string `json:"rolename"`
 }
+type DeleteUserBody struct {
+	Uid int `json:"uid"`
+}
 
 func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -50,7 +53,7 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 		ApiErr(w)
 		return
 	}
-	oldPass, err := GetPasswordByUid(user.Uid)
+	oldPass, err := getPasswordByUid(user.Uid)
 	if err != nil {
 		ApiErr(w)
 		return
@@ -62,7 +65,7 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	ok := SetPasswordByUid(user.Uid, getPasswordMD5(body.NewPass))
+	ok := setPasswordByUid(user.Uid, getPasswordMD5(body.NewPass))
 	if ok {
 		ApiOk(w)
 	} else {
@@ -81,7 +84,7 @@ func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
 		ApiErr(w)
 		return
 	}
-	ok := SetPasswordByUid(body.Uid, getPasswordMD5(body.NewPass))
+	ok := setPasswordByUid(body.Uid, getPasswordMD5(body.NewPass))
 	if ok {
 		ApiOk(w)
 	} else {
@@ -92,7 +95,7 @@ func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
 func SetUser(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
-		users := GetUsers()
+		users := getUsers()
 		json.NewEncoder(w).Encode(&ApiReturn{
 			Retcode: 0,
 			Message: "OK",
@@ -117,14 +120,30 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 			ApiErrMsg(w, "用户名已占用")
 			return
 		}
-		ok := AddUser(body.Username, getPasswordMD5(body.Password), roleid)
+		ok := addUser(body.Username, getPasswordMD5(body.Password), roleid)
 		if ok {
 			ApiOk(w)
 		} else {
 			ApiErr(w)
 		}
 	case "DELETE":
-
+		var body DeleteUserBody
+		err := json.NewDecoder(r.Body).Decode(&body)
+		if err != nil {
+			ApiErr(w)
+			return
+		}
+		uid := getUserByUid(body.Uid)
+		if uid == nil {
+			ApiErrMsg(w, "用户不存在")
+			return
+		}
+		ok := deleteUser(body.Uid)
+		if ok {
+			ApiOk(w)
+		} else {
+			ApiErr(w)
+		}
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}

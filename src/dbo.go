@@ -29,22 +29,20 @@ func getUidByUsername(username string) int {
 	return uid
 }
 
-func getRoleByUid(uid int, role *Role) *Role {
+func getRoleByUid(uid int) *Role {
 	stmt, err := db.Prepare("select rolename, isadmin from user,role where uid = ? and user.roleid = role.roleid")
 	if err != nil {
 		return nil
 	}
 	defer stmt.Close()
-	var isadmin bool
-	var rolename string
-	err = stmt.QueryRow(uid).Scan(&rolename, &isadmin)
+	var role Role
+	err = stmt.QueryRow(uid).Scan(&role.Rolename, &role.Isadmin)
 	if err != nil {
 		return nil
 	}
-	role.Rolename = rolename
-	role.Isadmin = isadmin
-	return role
+	return &role
 }
+
 func getRoleidByRolename(rolename string) int {
 	stmt, err := db.Prepare("select roleid from role where rolename = ?")
 	if err != nil {
@@ -59,7 +57,7 @@ func getRoleidByRolename(rolename string) int {
 	return roleid
 }
 
-func GetPasswordByUid(uid int) (res string, err error) {
+func getPasswordByUid(uid int) (res string, err error) {
 	stmt, err := db.Prepare("select password from user where uid = ?")
 	if err != nil {
 		return "", err
@@ -73,7 +71,7 @@ func GetPasswordByUid(uid int) (res string, err error) {
 	return passMD5, nil
 }
 
-func SetPasswordByUid(uid int, newPassword string) bool {
+func setPasswordByUid(uid int, newPassword string) bool {
 	stmt, err := db.Prepare("update user set password = ? where uid = ?")
 	if err != nil {
 		return false
@@ -86,7 +84,21 @@ func SetPasswordByUid(uid int, newPassword string) bool {
 	return true
 }
 
-func GetUsers() []User {
+func getUserByUid(uid int) *User {
+	stmt, err := db.Prepare("select username, rolename, isadmin from user,role where user.roleid = role.roleid and uid = ?")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	var user User
+	err = stmt.QueryRow(uid).Scan(&user.Username, &user.Rolename, &user.Isadmin)
+	if err != nil {
+		return nil
+	}
+	return &user
+}
+
+func getUsers() []User {
 	stmt, err := db.Prepare("select uid, username, rolename, isadmin from user,role where user.roleid = role.roleid")
 	if err != nil {
 		return nil
@@ -105,7 +117,7 @@ func GetUsers() []User {
 	return users
 }
 
-func AddUser(username string, password string, roleid int) bool {
+func addUser(username string, password string, roleid int) bool {
 	stmt, err := db.Prepare("insert into user (username, password, roleid) values (?, ?, ?)")
 	if err != nil {
 		return false

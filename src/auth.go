@@ -28,7 +28,7 @@ type ResponseToken struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
-	role := new(Role)
+	//role := new(Role)
 
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest)
@@ -47,7 +47,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		ApiErrMsg(w, "Wrong username or password")
 		return
 	}
-	role = getRoleByUid(uid, role)
+	role := getRoleByUid(uid)
 	if role == nil {
 		ApiErrMsg(w, "Wrong username or password")
 		return
