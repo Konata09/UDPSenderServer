@@ -44,26 +44,20 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json;charset=utf-8")
 	uid := getUidByUsernameAndPassword(creds.Username, creds.Password)
 	if uid == -1 {
-		json.NewEncoder(w).Encode(&ApiReturn{
-			Retcode: -1,
-			Message: "Wrong username or password",
-		})
+		returnErrMsg(w, "Wrong username or password")
 		return
 	}
 	role = getRoleByUid(uid, role)
 	if role == nil {
-		json.NewEncoder(w).Encode(&ApiReturn{
-			Retcode: -1,
-			Message: "Wrong username or password",
-		})
+		returnErrMsg(w, "Wrong username or password")
 		return
 	}
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &Claims{
 		Uid:      uid,
 		Username: creds.Username,
-		Rolename: role.rolename,
-		Isadmin:  role.isadmin,
+		Rolename: role.Rolename,
+		Isadmin:  role.Isadmin,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 			IssuedAt:  time.Now().Unix(),
@@ -122,7 +116,7 @@ func VerifyHeader(next http.Handler) http.Handler {
 func VerifyAdmin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		user := getUserInfoFromJWT(r)
-		if user.isadmin == true {
+		if user.Isadmin == true {
 			w.Header().Set("Content-Type", "application/json;charset=utf-8")
 			next.ServeHTTP(w, r)
 		} else {
@@ -141,9 +135,10 @@ func getUserInfoFromJWT(r *http.Request) *User {
 		return jwtKey, nil
 	})
 	return &User{
-		uid:      claims.Uid,
-		username: claims.Username,
-		isadmin:  claims.Isadmin,
+		Uid:      claims.Uid,
+		Username: claims.Username,
+		Rolename: claims.Rolename,
+		Isadmin:  claims.Isadmin,
 	}
 }
 
@@ -169,10 +164,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 24*time.Hour {
-		json.NewEncoder(w).Encode(&ApiReturn{
-			Retcode: -1,
-			Message: "Token not expires in one day",
-		})
+		returnErrMsg(w, "Token not expires in one day")
 		return
 	}
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)

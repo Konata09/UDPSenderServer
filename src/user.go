@@ -6,14 +6,15 @@ import (
 )
 
 type User struct {
-	uid      int
-	username string
-	isadmin  bool
+	Uid      int    `json:"uid"`
+	Username string `json:"username"`
+	Rolename string `json:"rolename"`
+	Isadmin  bool   `json:"isadmin"`
 }
 
 type Role struct {
-	rolename string
-	isadmin  bool
+	Rolename string
+	Isadmin  bool
 }
 
 type UserChangePasswordBody struct {
@@ -26,9 +27,14 @@ type AdminChangePasswordBody struct {
 	NewPass string `json:"newpass"`
 }
 
+type AllUsers struct {
+	Count int    `json:"count"`
+	Users []User `json:"users"`
+}
+
 func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 	user := getUserInfoFromJWT(r)
@@ -38,7 +44,7 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 		returnErr(w)
 		return
 	}
-	oldPass, err := GetPasswordByUid(user.uid)
+	oldPass, err := GetPasswordByUid(user.Uid)
 	if err != nil {
 		returnErr(w)
 		return
@@ -50,7 +56,7 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-	ok := SetPasswordByUid(user.uid, getPasswordMD5(body.NewPass))
+	ok := SetPasswordByUid(user.Uid, getPasswordMD5(body.NewPass))
 	if ok {
 		returnOk(w)
 	} else {
@@ -60,7 +66,7 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 
 func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 	var body AdminChangePasswordBody
@@ -74,5 +80,26 @@ func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
 		returnOk(w)
 	} else {
 		returnErrMsg(w, "修改失败")
+	}
+}
+
+func SetUser(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "GET":
+		users := GetUsers()
+		json.NewEncoder(w).Encode(&ApiReturn{
+			Retcode: 0,
+			Message: "OK",
+			Data: &AllUsers{
+				Count: len(users),
+				Users: users,
+			},
+		})
+	case "PUT":
+
+	case "DELETE":
+
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
