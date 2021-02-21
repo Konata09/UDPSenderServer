@@ -65,6 +65,10 @@ func SetDevice(w http.ResponseWriter, r *http.Request) {
 			ApiErr(w)
 			return
 		}
+		if strings.TrimSpace(body.DeviceName) == "" || (strings.TrimSpace(body.DeviceIp) == "" && strings.TrimSpace(body.DeviceMac) == "") {
+			ApiErrMsg(w, "Incomplete item found")
+			return
+		}
 		if getDeviceById(body.DeviceId) == nil {
 			ApiErrMsg(w, "设备不存在")
 			return

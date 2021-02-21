@@ -287,7 +287,7 @@ func setDevice(deviceId int, deviceName string, deviceIp string, deviceMac strin
 	if err != nil {
 		return false
 	}
-	_, err = stmt.Exec(deviceName, deviceIp, deviceMac, deviceId, deviceUdp, deviceWol)
+	_, err = stmt.Exec(deviceName, deviceIp, deviceMac, deviceUdp, deviceWol, deviceId)
 	if err != nil {
 		return false
 	}
