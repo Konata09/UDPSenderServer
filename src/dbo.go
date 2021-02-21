@@ -1,5 +1,7 @@
 package main
 
+import "reflect"
+
 func getUidByUsernameAndPassword(username string, password string) int {
 	passwordMD5 := getPasswordMD5(password)
 	stmt, err := db.Prepare("select uid from user where username = ? and password = ?")
@@ -144,7 +146,7 @@ func deleteUser(uid int) bool {
 }
 
 func getCommands() []Command {
-	stmt, err := db.Prepare("select id, `name`, `value`, `port` from command")
+	stmt, err := db.Prepare("select id, name, value, port from command")
 	if err != nil {
 		return nil
 	}
@@ -210,6 +212,82 @@ func setCommand(commandId int, commandName string, commandValue string, commandP
 		return false
 	}
 	_, err = stmt.Exec(commandName, commandValue, commandPort, commandId)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func getDevices() []Device {
+	stmt, err := db.Prepare("select id, name, ip, mac, udp, wol from device")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil
+	}
+	var devices []Device
+	for rows.Next() {
+		var device Device
+		rows.Scan(&device.DeviceId, &device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol)
+		devices = append(devices, device)
+	}
+	return devices
+}
+
+func getDeviceById(deviceId int) *Device {
+	stmt, err := db.Prepare("select name, ip, mac, udp, wol from device where id = ?")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	var device Device
+	err = stmt.QueryRow(deviceId).Scan(&device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol)
+	if err != nil {
+		return nil
+	}
+	return &device
+}
+
+func addDevice(devices []Device) bool {
+	stmt, err := db.Prepare("insert into device (name, ip, mac, udp, wol) values (?, ?, ?, ?, ?)")
+	if err != nil {
+		return false
+	}
+	defer stmt.Close()
+	for _, dev := range devices {
+		if reflect.ValueOf(dev).IsZero() {
+			continue
+		}
+		_, err = stmt.Exec(dev.DeviceName, dev.DeviceIp, dev.DeviceMac, &dev.DeviceUdp, &dev.DeviceWol)
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+func deleteDevice(deviceId int) bool {
+	stmt, err := db.Prepare("delete from device where id = ?")
+	if err != nil {
+		return false
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(deviceId)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func setDevice(deviceId int, deviceName string, deviceIp string, deviceMac string, deviceUdp bool, deviceWol bool) bool {
+	stmt, err := db.Prepare("update device set name = ?, ip = ?, mac = ?, udp = ?, wol = ? where id = ?")
+	if err != nil {
+		return false
+	}
+	_, err = stmt.Exec(deviceName, deviceIp, deviceMac, deviceId, deviceUdp, deviceWol)
 	if err != nil {
 		return false
 	}

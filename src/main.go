@@ -33,7 +33,7 @@ func main() {
 	//mux.Handle("/api/v1/sendCommand", VerifyHeader(http.HandlerFunc(UserChangePassword)))
 	mux.Handle("/api/v1/admin/changePassword", VerifyHeader(VerifyAdmin(http.HandlerFunc(AdminChangePassword))))
 	mux.Handle("/api/v1/admin/setUser", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetUser))))
-	//mux.Handle("/api/v1/admin/setDevice", VerifyHeader(VerifyAdmin(http.HandlerFunc(AdminChangePassword))))
+	mux.Handle("/api/v1/admin/setDevice", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetDevice))))
 	mux.Handle("/api/v1/admin/setCommand", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetCommand))))
 
 	//fmt.Println(getPasswordMD5("admin"))

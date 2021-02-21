@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 type Command struct {
@@ -35,11 +36,24 @@ func SetCommand(w http.ResponseWriter, r *http.Request) {
 			ApiErr(w)
 			return
 		}
-		ok := addCommand(body.Commands)
+		var commands []Command
+		var msg string
+		for _, cmd := range body.Commands {
+			if strings.TrimSpace(cmd.CommandName) == "" || strings.TrimSpace(cmd.CommandValue) == "" {
+				msg = msg + "Incomplete item found "
+			} else {
+				commands = append(commands, cmd)
+			}
+		}
+		if len(commands) == 0 {
+			ApiErrMsg(w, msg+"No item to add")
+			return
+		}
+		ok := addCommand(commands)
 		if ok {
-			ApiOk(w)
+			ApiOkMsg(w, msg+"OK")
 		} else {
-			ApiErr(w)
+			ApiErrMsg(w, msg+"请求错误")
 		}
 	case "POST":
 		var body Command

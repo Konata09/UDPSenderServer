@@ -17,6 +17,12 @@ func ApiOk(w http.ResponseWriter) {
 		Message: "OK",
 	})
 }
+func ApiOkMsg(w http.ResponseWriter, msg string) {
+	json.NewEncoder(w).Encode(&ApiReturn{
+		Retcode: 0,
+		Message: msg,
+	})
+}
 func ApiErr(w http.ResponseWriter) {
 	json.NewEncoder(w).Encode(&ApiReturn{
 		Retcode: -1,
