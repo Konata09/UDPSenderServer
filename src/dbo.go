@@ -142,3 +142,22 @@ func deleteUser(uid int) bool {
 	}
 	return true
 }
+
+func getCommands() []Command {
+	stmt, err := db.Prepare("select id, `name`, `value`, `port` from command")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil
+	}
+	var commands []Command
+	for rows.Next() {
+		var command Command
+		rows.Scan(&command.CommandId, &command.CommandName, &command.CommandValue, &command.CommandPort)
+		commands = append(commands, command)
+	}
+	return commands
+}

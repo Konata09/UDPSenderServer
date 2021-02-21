@@ -28,7 +28,6 @@ type ResponseToken struct {
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var creds Credentials
-	//role := new(Role)
 
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusBadRequest)

@@ -22,13 +22,9 @@ type AllUsers struct {
 	Users []User `json:"users"`
 }
 
-type UserChangePasswordBody struct {
-	OldPass string `json:"oldpass"`
-	NewPass string `json:"newpass"`
-}
-
-type AdminChangePasswordBody struct {
+type ChangePasswordBody struct {
 	Uid     int    `json:"uid"`
+	OldPass string `json:"oldpass"`
 	NewPass string `json:"newpass"`
 }
 
@@ -37,9 +33,6 @@ type PutUserBody struct {
 	Password string `json:"password"`
 	Rolename string `json:"rolename"`
 }
-type DeleteUserBody struct {
-	Uid int `json:"uid"`
-}
 
 func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
@@ -47,7 +40,7 @@ func UserChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user := getUserInfoFromJWT(r)
-	var body UserChangePasswordBody
+	var body ChangePasswordBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		ApiErr(w)
@@ -78,10 +71,14 @@ func AdminChangePassword(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
-	var body AdminChangePasswordBody
+	var body ChangePasswordBody
 	err := json.NewDecoder(r.Body).Decode(&body)
 	if err != nil {
 		ApiErr(w)
+		return
+	}
+	if getUserByUid(body.Uid) == nil {
+		ApiErrMsg(w, "用户不存在")
 		return
 	}
 	ok := setPasswordByUid(body.Uid, getPasswordMD5(body.NewPass))
@@ -104,6 +101,7 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 				Users: users,
 			},
 		})
+		break
 	case "PUT":
 		var body PutUserBody
 		err := json.NewDecoder(r.Body).Decode(&body)
@@ -126,15 +124,15 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 		} else {
 			ApiErr(w)
 		}
+		break
 	case "DELETE":
-		var body DeleteUserBody
+		var body User
 		err := json.NewDecoder(r.Body).Decode(&body)
 		if err != nil {
 			ApiErr(w)
 			return
 		}
-		uid := getUserByUid(body.Uid)
-		if uid == nil {
+		if getUserByUid(body.Uid) == nil {
 			ApiErrMsg(w, "用户不存在")
 			return
 		}
@@ -144,6 +142,7 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 		} else {
 			ApiErr(w)
 		}
+		break
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
