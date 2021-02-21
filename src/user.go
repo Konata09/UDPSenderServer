@@ -101,7 +101,6 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 				Users: users,
 			},
 		})
-		break
 	case "PUT":
 		var body PutUserBody
 		err := json.NewDecoder(r.Body).Decode(&body)
@@ -124,7 +123,6 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 		} else {
 			ApiErr(w)
 		}
-		break
 	case "DELETE":
 		var body User
 		err := json.NewDecoder(r.Body).Decode(&body)
@@ -142,7 +140,6 @@ func SetUser(w http.ResponseWriter, r *http.Request) {
 		} else {
 			ApiErr(w)
 		}
-		break
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}

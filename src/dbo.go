@@ -161,3 +161,57 @@ func getCommands() []Command {
 	}
 	return commands
 }
+
+func getCommandById(commandId int) *Command {
+	stmt, err := db.Prepare("select name, value, port from command where id = ?")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	var command Command
+	err = stmt.QueryRow(commandId).Scan(&command.CommandName, &command.CommandValue, &command.CommandPort)
+	if err != nil {
+		return nil
+	}
+	return &command
+}
+
+func addCommand(commands []Command) bool {
+	stmt, err := db.Prepare("insert into command (name, value, port) values (?, ?, ?)")
+	if err != nil {
+		return false
+	}
+	defer stmt.Close()
+	for _, cmd := range commands {
+		_, err = stmt.Exec(cmd.CommandName, cmd.CommandValue, cmd.CommandPort)
+		if err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+func deleteCommand(commandId int) bool {
+	stmt, err := db.Prepare("delete from command where id = ?")
+	if err != nil {
+		return false
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(commandId)
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func setCommand(commandId int, commandName string, commandValue string, commandPort int) bool {
+	stmt, err := db.Prepare("update command set name = ?, value = ?, port = ? where id = ?")
+	if err != nil {
+		return false
+	}
+	_, err = stmt.Exec(commandName, commandValue, commandPort, commandId)
+	if err != nil {
+		return false
+	}
+	return true
+}
