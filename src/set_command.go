@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
@@ -15,6 +16,21 @@ type Command struct {
 type AllCommands struct {
 	Count    int       `json:"count"`
 	Commands []Command `json:"commands"`
+}
+
+func checkCommandValid(name string, value string, port int) (bool, string) {
+	reCmd := regexp.MustCompile(`^[A-Fa-f0-9;]+$|^$`)
+
+	if strings.TrimSpace(name) == "" || strings.TrimSpace(value) == "" {
+		return false, "命令名称或者内容为空"
+	}
+	if !reCmd.MatchString(value) {
+		return false, "命令格式不正确"
+	}
+	if port < 1 || port > 65535 {
+		return false, "端口需位于1-65535之间"
+	}
+	return true, ""
 }
 
 func SetCommand(w http.ResponseWriter, r *http.Request) {
@@ -39,10 +55,11 @@ func SetCommand(w http.ResponseWriter, r *http.Request) {
 		var commands []Command
 		var msg string
 		for _, cmd := range body.Commands {
-			if strings.TrimSpace(cmd.CommandName) == "" || strings.TrimSpace(cmd.CommandValue) == "" {
-				msg = msg + "命令名称和值均不能为空 "
-			} else {
+			valid, m := checkCommandValid(cmd.CommandName, cmd.CommandValue, cmd.CommandPort)
+			if valid {
 				commands = append(commands, cmd)
+			} else {
+				msg = msg + m + " "
 			}
 		}
 		if len(commands) == 0 {
@@ -62,12 +79,13 @@ func SetCommand(w http.ResponseWriter, r *http.Request) {
 			ApiErr(w)
 			return
 		}
-		if strings.TrimSpace(body.CommandName) == "" || strings.TrimSpace(body.CommandValue) == "" {
-			ApiErrMsg(w, "命令名称和值均不能为空")
-			return
-		}
 		if getCommandById(body.CommandId) == nil {
 			ApiErrMsg(w, "命令不存在")
+			return
+		}
+		valid, m := checkCommandValid(body.CommandName, body.CommandValue, body.CommandPort)
+		if !valid {
+			ApiErrMsg(w, m)
 			return
 		}
 		ok := setCommand(body.CommandId, body.CommandName, body.CommandValue, body.CommandPort)
