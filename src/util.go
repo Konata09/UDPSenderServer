@@ -93,3 +93,11 @@ func getWolPayload(mac string) string {
 	}
 	return sb.String()
 }
+
+func appendMsg(oldMsg *string, newMsg string) {
+	if *oldMsg != "" {
+		*oldMsg = fmt.Sprintf("%s|%s", *oldMsg, newMsg)
+	} else {
+		*oldMsg = newMsg
+	}
+}

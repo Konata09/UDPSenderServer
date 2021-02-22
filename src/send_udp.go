@@ -93,28 +93,24 @@ func SendUDP(w http.ResponseWriter, r *http.Request) {
 			for _, tar := range body.TargetId {
 				dev := getDeviceById(tar)
 				if dev == nil {
-					if errMsg != "" {
-						errMsg = fmt.Sprintf("%s\n%s", errMsg, "设备不存在")
-					} else {
-						errMsg = "设备不存在"
-					}
+					appendMsg(&errMsg, fmt.Sprintf("id:%d 设备不存在", tar))
+					continue
+				}
+				if !dev.DeviceUdp {
+					appendMsg(&errMsg, fmt.Sprintf("%s: 设备不支持发送普通UDP数据包", dev.DeviceName))
 					continue
 				}
 				ip := dev.DeviceIp
 				for _, hex := range payloads {
 					err = sendSingleUdpPacket(ip, port, hex)
 					if err != nil {
-						if errMsg != "" {
-							errMsg = fmt.Sprintf("%s\n%s", errMsg, err)
-						} else {
-							errMsg = fmt.Sprint(err)
-						}
+						appendMsg(&errMsg, fmt.Sprintf("%s: %s", dev.DeviceName, err))
 					}
 				}
 			}
 		}
 		if errMsg != "" {
-			ApiErrMsg(w, errMsg)
+			ApiOkMsg(w, errMsg)
 			return
 		}
 		ApiOk(w)

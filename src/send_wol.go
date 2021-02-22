@@ -26,7 +26,7 @@ func SendWOL(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !body.DevAddress && !body.LocalNetBroadcast && !body.SubNetBroadcast {
-			ApiErrMsg(w, "至少选择一个发送地址")
+			ApiErrMsg(w, "至少选择一个目的地址")
 			return
 		}
 
@@ -46,11 +46,11 @@ func SendWOL(w http.ResponseWriter, r *http.Request) {
 				var address []string
 				dev := getDeviceById(tar)
 				if dev == nil {
-					if errMsg != "" {
-						errMsg = fmt.Sprintf("%s\n%s", errMsg, "设备不存在")
-					} else {
-						errMsg = "设备不存在"
-					}
+					appendMsg(&errMsg, fmt.Sprintf("id:%d 设备不存在", tar))
+					continue
+				}
+				if !dev.DeviceWol {
+					appendMsg(&errMsg, fmt.Sprintf("%s: 设备不支持网络唤醒", dev.DeviceName))
 					continue
 				}
 				if body.DevAddress {
@@ -66,17 +66,13 @@ func SendWOL(w http.ResponseWriter, r *http.Request) {
 				for _, addr := range address {
 					err = sendSingleUdpPacket(addr, wolPort, payload)
 					if err != nil {
-						if errMsg != "" {
-							errMsg = fmt.Sprintf("%s\n%s", errMsg, err)
-						} else {
-							errMsg = fmt.Sprint(err)
-						}
+						appendMsg(&errMsg, fmt.Sprintf("%s: %s", dev.DeviceName, err))
 					}
 				}
 			}
 		}
 		if errMsg != "" {
-			ApiErrMsg(w, errMsg)
+			ApiOkMsg(w, errMsg)
 			return
 		}
 		ApiOk(w)
