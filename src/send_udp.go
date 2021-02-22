@@ -10,16 +10,12 @@ import (
 )
 
 type SendUdpPacket struct {
-	TargetId      []Target `json:"targetid"`
-	Port          int      `json:"port"`
-	CommandId     int      `json:"commandid"`
-	UseCustom     bool     `json:"usecustom"`
-	CustomPayload string   `json:"custompayload"`
-	Repeat        int      `json:"repeat"`
-}
-
-type Target struct {
-	Id int `json:"id"`
+	TargetId      []int  `json:"targetid"`
+	Port          int    `json:"port"`
+	CommandId     int    `json:"commandid"`
+	UseCustom     bool   `json:"usecustom"`
+	CustomPayload string `json:"custompayload"`
+	Repeat        int    `json:"repeat"`
 }
 
 func sendSingleUdpPacket(ip string, port int, payload []byte) error {
@@ -89,11 +85,13 @@ func SendUDP(w http.ResponseWriter, r *http.Request) {
 			repeat = 1
 		} else if body.Repeat > 5 {
 			repeat = 5
+		} else {
+			repeat = body.Repeat
 		}
 		var errMsg string
 		for i := 0; i < repeat; i++ {
 			for _, tar := range body.TargetId {
-				dev := getDeviceById(tar.Id)
+				dev := getDeviceById(tar)
 				if dev == nil {
 					if errMsg != "" {
 						errMsg = fmt.Sprintf("%s\n%s", errMsg, "设备不存在")
