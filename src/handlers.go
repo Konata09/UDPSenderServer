@@ -1,17 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 )
 
 func Welcome(w http.ResponseWriter, r *http.Request) {
-	//if VerifyHeader(r.Header) {
-	//hex, err := hexStringToByte("4C696768746F6EFE051562017DFFr")
-	//if err != nil {
-	//	w.Write([]byte(fmt.Sprint(err)))
-	//	return
-	//}
-	//sendUdp("192.168.13.4", 888, hex)
+	fmt.Println(getSubNetBroadcast("172.31.161.200", 24))
 	w.Write([]byte(trimMACtoShow("5410ECA0FA12")))
 	//} else {
 	//	w.WriteHeader(403)

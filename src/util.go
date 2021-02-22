@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	strconv "strconv"
 	"strings"
 )
 
@@ -51,4 +52,33 @@ func hexStringToByte(hexString string) ([]byte, error) {
 		}
 	}
 	return hex, nil
+}
+
+func getSubNetBroadcast(ip string, subnetMask int) string {
+	ips := strings.Split(ip, ".")
+	var ipbin string
+	for _, num := range ips {
+		digi, _ := strconv.Atoi(num)
+		b := strconv.FormatInt(int64(digi), 2)
+		for strings.Count(b, "") <= 8 {
+			b = "0" + b
+		}
+		ipbin += b
+	}
+	var bcastbin string
+	for i := 0; i < 32; i++ {
+		if i < subnetMask {
+			bcastbin += ipbin[i : i+1]
+		} else {
+			bcastbin += "1"
+		}
+	}
+	var r [4]int64
+	r[0], _ = strconv.ParseInt(bcastbin[0:8], 2, 0)
+	r[1], _ = strconv.ParseInt(bcastbin[8:16], 2, 0)
+	r[2], _ = strconv.ParseInt(bcastbin[16:24], 2, 0)
+	r[3], _ = strconv.ParseInt(bcastbin[24:32], 2, 0)
+
+	bcastip := fmt.Sprintf("%d.%d.%d.%d", r[0], r[1], r[2], r[3])
+	return bcastip
 }
