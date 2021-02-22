@@ -31,12 +31,13 @@ func main() {
 	mux.Handle("/api/v1/getCommand", VerifyHeader(http.HandlerFunc(GetCommand)))
 	mux.Handle("/api/v1/getDevice", VerifyHeader(http.HandlerFunc(GetDevice)))
 	mux.Handle("/api/v1/sendUDP", VerifyHeader(http.HandlerFunc(SendUDP)))
+	mux.Handle("/api/v1/sendWOL", VerifyHeader(http.HandlerFunc(SendWOL)))
 	mux.Handle("/api/v1/admin/changePassword", VerifyHeader(VerifyAdmin(http.HandlerFunc(AdminChangePassword))))
 	mux.Handle("/api/v1/admin/setUser", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetUser))))
 	mux.Handle("/api/v1/admin/setCommand", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetCommand))))
 	mux.Handle("/api/v1/admin/setDevice", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetDevice))))
 
-	//fmt.Println(getPasswordMD5("admin"))
+	//fmt.Println(getSubnetBroadcast("172.16.0.254",16))
 	fmt.Println("UDPServer listen on 9999")
 	log.Panic(http.ListenAndServe(":9999", mux))
 }

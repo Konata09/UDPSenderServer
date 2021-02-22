@@ -14,6 +14,8 @@ type SendWolPacket struct {
 	Repeat            int   `json:"repeat"`
 }
 
+var wolPort = 9
+
 func SendWOL(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "POST":
@@ -55,14 +57,30 @@ func SendWOL(w http.ResponseWriter, r *http.Request) {
 					address = append(address, dev.DeviceIp)
 				}
 				if body.SubNetBroadcast {
-					address = append(address, "")
+					address = append(address, getSubnetBroadcast(dev.DeviceIp, 24))
 				}
 				if body.LocalNetBroadcast {
 					address = append(address, "255.255.255.255")
 				}
+				payload, _ := hexStringToByte(getWolPayload(dev.DeviceMac))
+				for _, addr := range address {
+					err = sendSingleUdpPacket(addr, wolPort, payload)
+					if err != nil {
+						if errMsg != "" {
+							errMsg = fmt.Sprintf("%s\n%s", errMsg, err)
+						} else {
+							errMsg = fmt.Sprint(err)
+						}
+					}
+				}
 			}
 		}
-
+		if errMsg != "" {
+			ApiErrMsg(w, errMsg)
+			return
+		}
+		ApiOk(w)
+		return
 	default:
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	}

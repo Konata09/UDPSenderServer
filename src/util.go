@@ -54,7 +54,7 @@ func hexStringToByte(hexString string) ([]byte, error) {
 	return hex, nil
 }
 
-func getSubNetBroadcast(ip string, subnetMask int) string {
+func getSubnetBroadcast(ip string, subnetMask int) string {
 	ips := strings.Split(ip, ".")
 	var ipbin string
 	for _, num := range ips {
@@ -78,7 +78,18 @@ func getSubNetBroadcast(ip string, subnetMask int) string {
 	r[1], _ = strconv.ParseInt(bcastbin[8:16], 2, 0)
 	r[2], _ = strconv.ParseInt(bcastbin[16:24], 2, 0)
 	r[3], _ = strconv.ParseInt(bcastbin[24:32], 2, 0)
-
 	bcastip := fmt.Sprintf("%d.%d.%d.%d", r[0], r[1], r[2], r[3])
 	return bcastip
+}
+
+func getWolPayload(mac string) string {
+	if strings.Contains(mac, ":") || strings.Contains(mac, "-") {
+		mac = trimMACtoStor(mac)
+	}
+	var sb strings.Builder
+	sb.WriteString("FFFFFFFFFFFF")
+	for i := 0; i < 16; i++ {
+		sb.WriteString(mac)
+	}
+	return sb.String()
 }
