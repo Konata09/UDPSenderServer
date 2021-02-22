@@ -145,6 +145,25 @@ func deleteUser(uid int) bool {
 	return true
 }
 
+func getUserCommands() []UserCommand {
+	stmt, err := db.Prepare("select id, name from command")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil
+	}
+	var commands []UserCommand
+	for rows.Next() {
+		var command UserCommand
+		rows.Scan(&command.CommandId, &command.CommandName)
+		commands = append(commands, command)
+	}
+	return commands
+}
+
 func getCommands() []Command {
 	stmt, err := db.Prepare("select id, name, value, port from command")
 	if err != nil {
@@ -233,6 +252,25 @@ func getDevices() []Device {
 		var device Device
 		rows.Scan(&device.DeviceId, &device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol)
 		device.DeviceMac = trimMACtoShow(device.DeviceMac)
+		devices = append(devices, device)
+	}
+	return devices
+}
+
+func getUserDevices() []UserDevice {
+	stmt, err := db.Prepare("select id, name, udp, wol from device")
+	if err != nil {
+		return nil
+	}
+	defer stmt.Close()
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil
+	}
+	var devices []UserDevice
+	for rows.Next() {
+		var device UserDevice
+		rows.Scan(&device.DeviceId, &device.DeviceName, &device.DeviceUdp, &device.DeviceWol)
 		devices = append(devices, device)
 	}
 	return devices
