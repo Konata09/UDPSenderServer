@@ -43,9 +43,9 @@ func hexStringToByte(hexString string) ([]byte, error) {
 	if err != nil {
 		errMsg := fmt.Sprint(err)
 		if strings.Contains(errMsg, "invalid byte") {
-			return nil, errors.New("不能含有[0-9|A-F]以外的字符")
+			return nil, errors.New("命令不能含有[0-9|A-F]以外的字符")
 		} else if strings.Contains(errMsg, "odd length hex string") {
-			return nil, errors.New("不能为奇数个字符")
+			return nil, errors.New("命令不能为奇数个字符")
 		} else {
 			return nil, err
 		}

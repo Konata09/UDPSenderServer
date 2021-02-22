@@ -30,7 +30,7 @@ func main() {
 	mux.Handle("/api/v1/user/changePassword", VerifyHeader(http.HandlerFunc(UserChangePassword)))
 	mux.Handle("/api/v1/getCommand", VerifyHeader(http.HandlerFunc(GetCommand)))
 	mux.Handle("/api/v1/getDevice", VerifyHeader(http.HandlerFunc(GetDevice)))
-	//mux.Handle("/api/v1/sendCommand", VerifyHeader(http.HandlerFunc()))
+	mux.Handle("/api/v1/sendUDP", VerifyHeader(http.HandlerFunc(SendUDP)))
 	mux.Handle("/api/v1/admin/changePassword", VerifyHeader(VerifyAdmin(http.HandlerFunc(AdminChangePassword))))
 	mux.Handle("/api/v1/admin/setUser", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetUser))))
 	mux.Handle("/api/v1/admin/setCommand", VerifyHeader(VerifyAdmin(http.HandlerFunc(SetCommand))))
