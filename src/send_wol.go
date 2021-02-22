@@ -57,7 +57,7 @@ func SendWOL(w http.ResponseWriter, r *http.Request) {
 					address = append(address, dev.DeviceIp)
 				}
 				if body.SubNetBroadcast {
-					address = append(address, getSubnetBroadcast(dev.DeviceIp, 24))
+					address = append(address, getSubnetBroadcast(dev.DeviceIp, dev.DeviceSubmask))
 				}
 				if body.LocalNetBroadcast {
 					address = append(address, "255.255.255.255")

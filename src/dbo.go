@@ -238,7 +238,7 @@ func setCommand(commandId int, commandName string, commandValue string, commandP
 }
 
 func getDevices() []Device {
-	stmt, err := db.Prepare("select id, name, ip, mac, udp, wol from device")
+	stmt, err := db.Prepare("select id, name, ip, mac, udp, wol, submask from device")
 	if err != nil {
 		return nil
 	}
@@ -250,7 +250,7 @@ func getDevices() []Device {
 	var devices []Device
 	for rows.Next() {
 		var device Device
-		rows.Scan(&device.DeviceId, &device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol)
+		rows.Scan(&device.DeviceId, &device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol, &device.DeviceSubmask)
 		device.DeviceMac = trimMACtoShow(device.DeviceMac)
 		devices = append(devices, device)
 	}
@@ -277,13 +277,13 @@ func getUserDevices() []UserDevice {
 }
 
 func getDeviceById(deviceId int) *Device {
-	stmt, err := db.Prepare("select name, ip, mac, udp, wol from device where id = ?")
+	stmt, err := db.Prepare("select name, ip, mac, udp, wol, submask from device where id = ?")
 	if err != nil {
 		return nil
 	}
 	defer stmt.Close()
 	var device Device
-	err = stmt.QueryRow(deviceId).Scan(&device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol)
+	err = stmt.QueryRow(deviceId).Scan(&device.DeviceName, &device.DeviceIp, &device.DeviceMac, &device.DeviceUdp, &device.DeviceWol, &device.DeviceSubmask)
 	if err != nil {
 		return nil
 	}
@@ -292,7 +292,7 @@ func getDeviceById(deviceId int) *Device {
 }
 
 func addDevice(devices []Device) bool {
-	stmt, err := db.Prepare("insert into device (name, ip, mac, udp, wol) values (?, ?, ?, ?, ?)")
+	stmt, err := db.Prepare("insert into device (name, ip, mac, udp, wol, submask) values (?, ?, ?, ?, ?)")
 	if err != nil {
 		return false
 	}
@@ -301,7 +301,7 @@ func addDevice(devices []Device) bool {
 		if reflect.ValueOf(dev).IsZero() {
 			continue
 		}
-		_, err = stmt.Exec(dev.DeviceName, dev.DeviceIp, trimMACtoStor(dev.DeviceMac), &dev.DeviceUdp, &dev.DeviceWol)
+		_, err = stmt.Exec(dev.DeviceName, dev.DeviceIp, trimMACtoStor(dev.DeviceMac), &dev.DeviceUdp, &dev.DeviceWol, &dev.DeviceSubmask)
 		if err != nil {
 			return false
 		}
@@ -322,12 +322,15 @@ func deleteDevice(deviceId int) bool {
 	return true
 }
 
-func setDevice(deviceId int, deviceName string, deviceIp string, deviceMac string, deviceUdp bool, deviceWol bool) bool {
-	stmt, err := db.Prepare("update device set name = ?, ip = ?, mac = ?, udp = ?, wol = ? where id = ?")
+func setDevice(deviceId int, deviceName string, deviceIp string, deviceMac string, deviceUdp bool, deviceWol bool, deviceSubmask int) bool {
+	if deviceSubmask == 0 {
+		deviceSubmask = 24
+	}
+	stmt, err := db.Prepare("update device set name = ?, ip = ?, mac = ?, udp = ?, wol = ?, submask = ? where id = ?")
 	if err != nil {
 		return false
 	}
-	_, err = stmt.Exec(deviceName, deviceIp, trimMACtoStor(deviceMac), deviceUdp, deviceWol, deviceId)
+	_, err = stmt.Exec(deviceName, deviceIp, trimMACtoStor(deviceMac), deviceUdp, deviceWol, deviceSubmask, deviceId)
 	if err != nil {
 		return false
 	}

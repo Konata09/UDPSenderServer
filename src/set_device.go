@@ -8,12 +8,13 @@ import (
 )
 
 type Device struct {
-	DeviceId   int    `json:"id"`
-	DeviceName string `json:"name"`
-	DeviceIp   string `json:"ip"`
-	DeviceMac  string `json:"mac"`
-	DeviceUdp  bool   `json:"udp"`
-	DeviceWol  bool   `json:"wol"`
+	DeviceId      int    `json:"id"`
+	DeviceName    string `json:"name"`
+	DeviceIp      string `json:"ip"`
+	DeviceMac     string `json:"mac"`
+	DeviceUdp     bool   `json:"udp"`
+	DeviceWol     bool   `json:"wol"`
+	DeviceSubmask int    `json:"submask"`
 }
 
 type AllDevices struct {
@@ -21,7 +22,7 @@ type AllDevices struct {
 	Devices []Device `json:"devices"`
 }
 
-func checkDeviceValid(name string, ip string, mac string, udp bool, wol bool) (bool, string) {
+func checkDeviceValid(name string, ip string, mac string, udp bool, wol bool, submask int) (bool, string) {
 	reIp := regexp.MustCompile(`^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}$`)
 	reMac := regexp.MustCompile(`^([0-9A-Fa-f]{2}([:-]?|$)){6}$`)
 
@@ -42,6 +43,9 @@ func checkDeviceValid(name string, ip string, mac string, udp bool, wol bool) (b
 	}
 	if udp && ip == "" {
 		return false, "UDP需要ip地址"
+	}
+	if submask < 1 || submask > 32 {
+		return false, "子网掩码位数位于1~32之间"
 	}
 	return true, ""
 }
@@ -69,7 +73,7 @@ func SetDevice(w http.ResponseWriter, r *http.Request) {
 		var msg string
 
 		for _, dev := range body.Devices {
-			valid, m := checkDeviceValid(dev.DeviceName, dev.DeviceIp, dev.DeviceMac, dev.DeviceUdp, dev.DeviceWol)
+			valid, m := checkDeviceValid(dev.DeviceName, dev.DeviceIp, dev.DeviceMac, dev.DeviceUdp, dev.DeviceWol, dev.DeviceSubmask)
 			if valid {
 				devices = append(devices, dev)
 			} else {
@@ -97,12 +101,12 @@ func SetDevice(w http.ResponseWriter, r *http.Request) {
 			ApiErrMsg(w, "设备不存在")
 			return
 		}
-		valid, m := checkDeviceValid(body.DeviceName, body.DeviceIp, body.DeviceMac, body.DeviceUdp, body.DeviceWol)
+		valid, m := checkDeviceValid(body.DeviceName, body.DeviceIp, body.DeviceMac, body.DeviceUdp, body.DeviceWol, body.DeviceSubmask)
 		if !valid {
 			ApiErrMsg(w, m)
 			return
 		}
-		ok := setDevice(body.DeviceId, body.DeviceName, body.DeviceIp, body.DeviceMac, body.DeviceUdp, body.DeviceWol)
+		ok := setDevice(body.DeviceId, body.DeviceName, body.DeviceIp, body.DeviceMac, body.DeviceUdp, body.DeviceWol, body.DeviceSubmask)
 		if ok {
 			ApiOk(w)
 		} else {
